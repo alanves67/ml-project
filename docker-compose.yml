@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: ml_postgres
+    environment:
+      POSTGRES_USER: ml_user
+      POSTGRES_PASSWORD: ml_pass
+      POSTGRES_DB: ml_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ml_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ml_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Наш ML сервис
+  ml-service:
+    build: .
+    container_name: ml_service
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ml_user:ml_pass@postgres:5432/ml_db
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./models:/app/models
+      - ./src:/app/src  # Для горячей перезагрузки при разработке
+    networks:
+      - ml_network
+    command: uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
+
+  # pgAdmin для просмотра базы (опционально)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ml_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ml_network
+
+volumes:
+  postgres_data:
+
+networks:
+  ml_network:
+    driver: bridge
