@@ -91,3 +91,7 @@ ehthumbs.db
 *.seed
 *.pid.lock
 .python-version
+
+# Render
+.render/
+*.pid
