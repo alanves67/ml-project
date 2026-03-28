@@ -2,22 +2,21 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Копируем базовые зависимости
+# Копируем зависимости
 COPY requirements.txt .
-COPY requirements-docker.txt .
 
-# Устанавливаем все зависимости (в Docker компиляция не требуется)
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir -r requirements-docker.txt
+# Устанавливаем зависимости
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем код
 COPY src/ ./src/
-COPY tests/ ./tests/
 COPY run.py .
 
 # Создаем папку для моделей
 RUN mkdir -p models
 
-EXPOSE 8000
+# Render использует порт 10000
+EXPOSE 10000
 
-CMD ["python", "run.py"]
+# Запускаем приложение
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "10000"]
