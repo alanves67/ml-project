@@ -1,0 +1,7 @@
+# Создай .gitignore
+echo "__pycache__/" >> .gitignore
+echo ".venv/" >> .gitignore
+echo "venv/" >> .gitignore
+echo ".pytest_cache/" >> .gitignore
+echo "models/*.joblib" >> .gitignore
+echo ".env" >> .gitignore
